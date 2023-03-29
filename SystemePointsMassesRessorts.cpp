@@ -1,5 +1,3 @@
-// apps/Cherazade/SystemePointsMassesRessorts.cpp
-
 #include<Grapic.h>
 #define NMAX 100 // Macro
 #define CARRE(X) (X)*(X)
