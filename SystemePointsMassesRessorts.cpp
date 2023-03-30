@@ -255,7 +255,7 @@ int main(int , char**)
 {
     bool stop=false;
 
-	winInit("vide",500,500);
+	winInit("SystemeMassesRessorts",500,500);
 	backgroundColor(120,70,200);
 	color(220,220,220);
 
