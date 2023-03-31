@@ -1,17 +1,17 @@
 #include<Grapic.h>
+
 #define NMAX 100 // Macro
-#define CARRE(X) (X)*(X)
 #define EPS 1E-07
+#define CARRE(X) (X)*(X)
 
 //return sqrt(CARRE (A.x - B.x) + CARRE(A.y - B.y))
 
 using namespace grapic;
 
-using namespace std;
-
 const int DIMW = 500;
 
-struct Vecteur{
+struct Vecteur
+{
     float x, y;
 };
 
@@ -19,14 +19,16 @@ typedef Vecteur Point;
 
 const Vecteur G = {0, -9.81};
 
-struct Particle{
+struct Particle
+{
     Vecteur position;
     Vecteur vitesse;
     Vecteur force;
     int masse;
 };
 
-struct Spring{
+struct Spring
+{
     float k;
     float lg;
     int i1;
@@ -84,6 +86,23 @@ Vecteur operator / (float lambda, Vecteur a){
 return makeVecteur(a.x/lambda, a.y/lambda);
 }
 
+float distance(Point A, Point B)
+{
+return (sqrt((A.x - B.x)*(A.x - B.x)+(A.y - B.y)*(A.y - B.y)));
+}
+
+Vecteur normaliseVecteur(Vecteur v)
+{
+float n;
+n = sqrt(v.x*v.x + v.y*v.y);
+if(fabs(n)>EPS) //fabs valeur absolue
+{
+v.x = v.x/n;
+v.y = v.y/n;
+}
+return v;
+}
+
 // ------------------------------ //
 
 
@@ -106,17 +125,6 @@ w.tabPart[w.nbPart].force.y = 0;
 w.nbPart++;
 return(w.nbPart-1);
 }
-}
-
-// ------------------------------ //
-
-
-
-// ------------------------------ //
-
-float distance(Point A, Point B)
-{
-return (sqrt((A.x - B.x)*(A.x - B.x)+(A.y - B.y)*(A.y - B.y)));
 }
 
 int addSpring(World& w, int i1, int i2, float k)
@@ -144,18 +152,6 @@ return (w.nbSpring-1);
 
 // ------------------------------ //
 
-Vecteur normaliseVecteur(Vecteur v)
-{
-float n;
-n = sqrt(v.x*v.x + v.y*v.y);
-if(fabs(n)>EPS) //fabs valeur absolue
-{
-v.x = v.x/n;
-v.y = v.y/n;
-}
-return v;
-}
-
 void computeSpringForce(World& w)
 {
 int i1, i2, i;
@@ -169,8 +165,8 @@ d = distance(w.tabPart[i1].position, w.tabPart[i2].position);
 delta = d-w.tabSpring[i].lg;
 v = w.tabPart[i2].position - w.tabPart[i1].position;
 e = normaliseVecteur(v);
-w.tabPart[i1].force = w.tabPart[i1].force + w.tabSpring[i].k * delta * e;
-w.tabPart[i2].force = w.tabPart[i2].force - w.tabSpring[i].k * delta * e;
+w.tabPart[i1].force = (w.tabPart[i1].force + w.tabSpring[i].k * delta * e); /**< MODELISATION INSTABLE, PAS DE FORCES DE FROTTEMENTS */
+w.tabPart[i2].force = (w.tabPart[i2].force - w.tabSpring[i].k * delta * e);
 }
 }
 
@@ -217,12 +213,12 @@ line(w.tabPart[1].position.x, w.tabPart[1].position.y, w.tabPart[3].position.x, 
 
 // ------------------------------ //
 
-void ajoutForceTerrestre (World& w, int i)
+void ajoutForceTerrestre(World& w, int i)
 {
     w.tabPart[i].force = w.tabPart[i].force + w.tabPart[i].masse * G;
 }
 
-void updateVitessePosition(World& w)
+void updateVitessePosition(World& w) /**< PAS DE FORCES DE FROTTEMENTS */
 {
     for(int i = 0; i<w.nbPart; i++)
     {
@@ -231,17 +227,35 @@ void updateVitessePosition(World& w)
 
         if (w.tabPart[i].position.y < 0)
         {
-        w.tabPart[i].vitesse = (-1) * ((w.tabPart[i].force / w.tabPart[i].masse) * w.dt + w.tabPart[i].vitesse);
-        w.tabPart[i].position = w.tabPart[i].vitesse * w.dt + w.tabPart[i].position;
+            w.tabPart[i].vitesse = (-1) * ((w.tabPart[i].force / w.tabPart[i].masse) * w.dt + w.tabPart[i].vitesse);
+            w.tabPart[i].position = w.tabPart[i].vitesse * w.dt + w.tabPart[i].position;
+        }
+
+        if (w.tabPart[i].position.x < 0)
+        {
+            w.tabPart[i].vitesse = (-1) * ((w.tabPart[i].force / w.tabPart[i].masse) * w.dt + w.tabPart[i].vitesse);
+            w.tabPart[i].position = w.tabPart[i].vitesse * w.dt + w.tabPart[i].position;
+        }
+
+        if (w.tabPart[i].position.y > DIMW)
+        {
+            w.tabPart[i].vitesse = (-1) * ((w.tabPart[i].force / w.tabPart[i].masse) * w.dt + w.tabPart[i].vitesse);
+            w.tabPart[i].position = w.tabPart[i].vitesse * w.dt + w.tabPart[i].position;
+        }
+
+        if (w.tabPart[i].position.x > DIMW)
+        {
+            w.tabPart[i].vitesse = (-1) * ((w.tabPart[i].force / w.tabPart[i].masse) * w.dt + w.tabPart[i].vitesse);
+            w.tabPart[i].position = w.tabPart[i].vitesse * w.dt + w.tabPart[i].position;
         }
     }
 }
 
-void updateForce0(World& w)
+void updateForce0(World& w) /**< FONCTION ESSENTIELLE POUR LE FONCTIONNEMENT DU PROGRAMME MASSES-RESSORTS */
 {
     for(int i=0; i<w.nbPart; i++)
     {
-            w.tabPart[i].force = {0, 0};
+        w.tabPart[i].force = makeVecteur(0, 0);
     }
 }
 
@@ -260,8 +274,10 @@ int main(int , char**)
 	color(220,220,220);
 
 	World w;
+
 	w.nbPart = 0;
 	w.nbSpring = 0;
+
 	w.dt = 0.01;
 
 	carre(w, DIMW/2, DIMW/2);
@@ -278,8 +294,10 @@ int main(int , char**)
     }
 
     computeSpringForce(w);
+
     updateVitessePosition(w);
     updateForce0(w);
+
     delay(1);
 
     stop = winDisplay();
