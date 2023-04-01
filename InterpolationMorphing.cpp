@@ -264,10 +264,13 @@ int main(int , char**)
     bool stop=false;
     winInit("InterpolationMorphing",500,500);
 	backgroundColor(120,70,200);
+
     Polygon a;
     Polygon b;
     Polygon c;
+
     float t;
+
     initPoly1(a);
     initPoly2(b);
 
@@ -276,6 +279,7 @@ int main(int , char**)
 
     t = abs(sin(elapsedTime()));
     c = interpolation_polygon(a, b, t);
+
     drawPolygon(c);
 
     stop = winDisplay();
