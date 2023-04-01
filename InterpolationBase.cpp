@@ -15,12 +15,6 @@ struct complexe{
 
 typedef complexe Point;
 
-/*------------------------------/
-
-
-
-/------------------------------*/
-
 struct Color {
 unsigned char r, v, b;
 };
@@ -108,7 +102,6 @@ Color chaud = {255, 0, 0};
 float t = (temperature - Tfroid) / (Tchaud - Tfroid);
 return ((1-t) * froid + chaud * t);
 }
-
 void DrawLine (complexe nb1, complexe nb2){
 line(nb1.x, nb1.y, nb2.x, nb2.y);
 }*/
@@ -134,6 +127,7 @@ int main(int , char**)
 {
 	winInit("InterpolationBase",500,500);
 	backgroundColor(100,50,200);
+
 	complexe nb1 {150, 150};
 	complexe nb2 {350, 350};
 
@@ -141,19 +135,22 @@ int main(int , char**)
 
     winClear();
 
-    //for(int i = 0; i<10; i++)
-    //{
-    //c = colorTemperature(((Tchaud - Tfroid)/10) * i - Tfroid);
-    //color(c.r, 0, c.b);
     Color r;
     r.r = 255;
     r.b = 0;
     r.v = 0;
+
     Color b;
     b.r = 0;
     b.v = 0;
     b.b = 255;
+
     draw_line(nb1, nb2, r, b);
+
+    //for(int i = 0; i<10; i++)
+    //{
+    //c = colorTemperature(((Tchaud - Tfroid)/10) * i - Tfroid);
+    //color(c.r, 0, c.b);
     //DrawLine (interpolation(nb1, nb2, i*pas), interpolation(nb1, nb2, (i+1)*pas));
     //}
 
