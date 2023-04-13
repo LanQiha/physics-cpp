@@ -1,3 +1,3 @@
 # LIFAMI
 
-Dossier contenant la correction des TPs de LIFAMI.
+Dossier contenant la correction de certains TPs de LIFAMI.
