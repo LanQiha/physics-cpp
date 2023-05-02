@@ -1,3 +1,3 @@
 # LIFAMI
 
-Début de corrections des TPs de LIFAMI.
+Début de correction des TPs de LIFAMI.
