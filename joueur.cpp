@@ -106,7 +106,7 @@ return v;
 struct Vaisseau
 {
     complexe pos;
-    complexe vit;
+    float vit;
     complexe dir;
 };
 
@@ -114,6 +114,27 @@ void dessine_vaisseau(Vaisseau& vais)
 {
     color(255, 0, 0);
     circleFill(vais.pos.x, vais.pos.y, 20);
+}
+
+void initVaisseau(Vaisseau& vais)
+{
+    vais.pos = makeComplexe(DIMW/2, DIMW/10);
+    vais.vit = 10.;
+    vais.dir = makeComplexe(0, 1);
+}
+
+void update_vaisseau(Vaisseau& vais)
+{
+    vais.pos = vais.pos + vais.vit * vais.dir * 0.01;
+
+    if(isKeyPressed(SDLK_UP))
+    {
+        vais.vit = vais.vit * 2;
+    }
+    if(isKeyPressed(SDLK_DOWN))
+    {
+        vais.vit = vais.vit * 0.5;
+    }
 }
 
 /**< INTERPOLATION 2019 */
@@ -345,7 +366,7 @@ int main(int , char**)
     bool stop=false;
 
 	winInit("joueur",DIMW,DIMW);
-	backgroundColor(300,300,300);
+	backgroundColor(300, 300, 300);
 
 	Galaxy gala;
 	initGalaxy(gala);
@@ -364,7 +385,7 @@ int main(int , char**)
 	cout << "interpolation : " << interpolationAlcool(p, 6, 45) << endl;
 
 	Vaisseau vais;
-	initVaisseau(vais); /**< PAS DANS LE CT */
+	initVaisseau(vais);
 
 	while(!stop)
     {
