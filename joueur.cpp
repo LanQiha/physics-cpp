@@ -1,3 +1,5 @@
+ERREUR SUR LES RAND() !!!
+
 #include <Grapic.h>
 
 using namespace grapic;
@@ -149,7 +151,7 @@ struct Lieu
     int nbUsine;
     int tabVoiture[MAX_H]; /**< nbVoitures */
     float tabVent[MAX_H]; /**< VitesseVent */
-    float tabPluie[MAX_H]; /**< QuantitéDePluieTombée */
+    float tabPluie[MAX_H]; /**< QuantitÃ©DePluieTombÃ©e */
     float tabconc[MAX_H];
 };
 
@@ -160,11 +162,11 @@ const float Dpluie = 0.5 ;
 
 void calculeConcentration(Lieu& li)
 {
-    /**< Concentration = PolluantProduit - PolluantDispersé
+    /**< Concentration = PolluantProduit - PolluantDispersÃ©
     PolluantProduit = nbUsines * Pusine (constante) + nbVoitures * Pvoitures (constante)
-    PolluantDispersé = VitesseVent * Dvent (constante) + Qpluie * Dpluie (constante) */
+    PolluantDispersÃ© = VitesseVent * Dvent (constante) + Qpluie * Dpluie (constante) */
 
-    /**< les tableaux voitures, pluie, vent sont remplis. On suppose également que la
+    /**< les tableaux voitures, pluie, vent sont remplis. On suppose Ã©galement que la
 concentration initiale est de 0.  */
 
     li.tabconc[0] = li.nbUsine * Pusine + li.tabVoiture[0] * Pvoiture - Dvent * li.tabVent[0] - Dpluie * li.tabPluie[0];
