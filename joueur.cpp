@@ -1,4 +1,24 @@
-ERREUR SUR LES RAND() !!!
+// ERREUR SUR LES RAND() !!! FLEMME DE CORRIGER, BON COURAGE POUR LE CT
+	
+	
+	// GALAXY AVEC LES BONS RAND()
+
+	void initGalaxy(Galaxy& gala)
+{
+    gala.centreGalaxy = makeVecteur(DIMW/2, DIMW/2);
+    gala.nbEtoiles = 10 + rand()%(MAX_ETOILE + 1 - 10);
+    cout << gala.nbEtoiles << endl;
+    for(int i=0; i<gala.nbEtoiles; i++)
+    {
+        gala.tab[i].posEtoile = makeVecteur(rand()%DIMW, rand()%DIMW);
+        cout << gala.tab[i].posEtoile.x << " " << gala.tab[i].posEtoile.y << endl;
+        gala.tab[i].posSatellite = makeVecteur(gala.tab[i].posEtoile.x - CARRE_ETOILE/2 +
+                                               rand()%(gala.tab[i].posEtoile.x + CARRE_ETOILE/2 - (gala.tab[i].posEtoile.x - CARRE_ETOILE/2) + 1),
+                                               gala.tab[i].posEtoile.y - CARRE_ETOILE/2 +
+                                               rand()%(gala.tab[i].posEtoile.y + CARRE_ETOILE/2 - (gala.tab[i].posEtoile.y - CARRE_ETOILE/2) + 1));
+
+    }
+}
 
 #include <Grapic.h>
 
