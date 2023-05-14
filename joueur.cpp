@@ -9,6 +9,8 @@ using namespace grapic;
 
 using namespace std;
 
+#define EPS 1E-07
+
 struct complexe{
     float x;
     float y;
@@ -49,45 +51,14 @@ complexe operator * (complexe a, complexe b){
 return makeComplexe((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));
 }
 
-struct Etoile
+complexe operator / (complexe a, float lambda)
 {
-    complexe etoile;
-    complexe satellite;
-};
-
-int const MAX = 30;
-
-struct Galaxy
-{
-    complexe centre;
-    Etoile tab[MAX];
-    int nb;
-};
-
-int const DIMW = 500;
-int const CARRE_ETOILE = 50;
-
-void initGalaxy(Galaxy& gala)
-{
-    gala.centre = makeComplexe(DIMW/2, DIMW/2);
-    gala.nb = rand()%MAX + 10;
-    for(int i=0; i<gala.nb; i++)
-    {
-        gala.tab[i].etoile = makeComplexe(rand()%DIMW, rand()%DIMW);
-        gala.tab[i].satellite = makeComplexe(gala.tab[i].etoile.x + rand()%CARRE_ETOILE/2, gala.tab[i].etoile.y + rand()%CARRE_ETOILE/2);
-
-    }
+    return makeComplexe(a.x/lambda, a.y/lambda);
 }
 
-void drawGalaxy(Galaxy& gala)
+complexe operator / (float lambda, complexe a)
 {
-    for(int i=0; i<gala.nb; i++)
-    {
-        color(255, 0, 0);
-        circleFill(gala.tab[i].etoile.x, gala.tab[i].etoile.y, 10);
-        color(0, 0, 255);
-        circle(gala.tab[i].satellite.x, gala.tab[i].satellite.y, 5);
-    }
+     return makeComplexe(a.x/lambda, a.y/lambda);
 }
 
 complexe Rotate(complexe a, complexe c, float angle)
@@ -97,19 +68,97 @@ complexe Rotate(complexe a, complexe c, float angle)
     return (a-c)*rot + c;
 }
 
-void updateGalaxy(Galaxy& gala)
-{
-    complexe c = makeComplexe(DIMW/2, DIMW/2);
-    complexe tr;
+int const DIMW = 500;
 
-    for(int i=0; i<gala.nb; i++)
+/**< COMPLEXES 2019 */
+
+void draw_polygon(int cx, int cy, int r, int n)
+{
+    color(255, 0, 0);
+    complexe tab[n];
+    complexe centre = makeComplexe(cx, cy);
+    for(int i=0; i<n; i++)
     {
-        tr = gala.tab[i].satellite - gala.tab[i].etoile;
-        gala.tab[i].etoile = Rotate(gala.tab[i].etoile, c, 0.01);
-        gala.tab[i].satellite = gala.tab[i].etoile + tr;
-        gala.tab[i].satellite = Rotate(gala.tab[i].satellite, gala.tab[i].etoile, 0.1);
+        //tab[i] = centre + makeComplexeExp(r, toRadian(i*(360/n))); Fonctionne aussi
+        tab[i] = makeComplexe(centre.x + r, centre.y);
+        tab[i] = Rotate(tab[i], centre, i*(360/n));
+
+    }
+    for(int j = 0; j<n-1; j++)
+    {
+        line(tab[j].x, tab[j].y, tab[j+1].x, tab[j+1].y);
+    }
+    line(tab[0].x, tab[0].y, tab[n-1].x, tab[n-1].y);
+}
+
+complexe normaliseVecteur(complexe v)
+{
+float n;
+n = sqrt(v.x*v.x + v.y*v.y);
+if(fabs(n)>EPS) //fabs valeur absolue
+{
+v.x = v.x/n;
+v.y = v.y/n;
+}
+return v;
+}
+
+struct Vaisseau
+{
+    complexe pos;
+    complexe vit;
+    complexe dir;
+};
+
+void dessine_vaisseau(Vaisseau& vais)
+{
+    color(255, 0, 0);
+    circleFill(vais.pos.x, vais.pos.y, 20);
+}
+
+/**< INTERPOLATION 2019 */
+
+/**< INTERPOLATION 2018 */ /**< PAS TESTE */
+
+const int MAX_H = 10;
+
+struct Lieu
+{
+    complexe GPS;
+    int nbUsine;
+    int tabVoiture[MAX_H]; /**< nbVoitures */
+    float tabVent[MAX_H]; /**< VitesseVent */
+    float tabPluie[MAX_H]; /**< QuantitéDePluieTombée */
+    float tabconc[MAX_H];
+};
+
+const float Pusine = 0.1 ;
+const float Pvoiture = 0.001 ;
+const float Dvent = 0.1 ;
+const float Dpluie = 0.5 ;
+
+void calculeConcentration(Lieu& li)
+{
+    /**< Concentration = PolluantProduit - PolluantDispersé
+    PolluantProduit = nbUsines * Pusine (constante) + nbVoitures * Pvoitures (constante)
+    PolluantDispersé = VitesseVent * Dvent (constante) + Qpluie * Dpluie (constante) */
+
+    /**< les tableaux voitures, pluie, vent sont remplis. On suppose également que la
+concentration initiale est de 0.  */
+
+    for(int i=0; i<MAX_H; i++)
+    {
+        li.tabconc[i] = li.nbUsine * Pusine + li.tabVoiture[i] * Pvoiture - Dvent * li.tabVent[i] - Dpluie * li.tabPluie[i];
     }
 }
+
+float interpolationConcentration(Lieu& li, int H, int M)
+{
+    /**< (1-t)*a + t*b, t = poids */
+    return (1-(M/60)) * li.tabconc[H] + (M/60) * li.tabconc[H+1];
+}
+
+/**< COMPLEXES 2018 */ /**< TESTE */
 
 const int MAX_ELECTRONS = 10;
 const int MAX_ATOMES = 20;
@@ -141,13 +190,11 @@ void initMolecule(Molecule& mol)
         for(int j=0; j<mol.tab[i].nbElectrons; j++)
         {
             mol.tab[i].tab[j] = makeComplexe(mol.tab[i].pos.x - CARRE_ELECTRON/2 + rand()%CARRE_ELECTRON, mol.tab[i].pos.y - CARRE_ELECTRON/2 + rand()%CARRE_ELECTRON);
-            cout << mol.nbAtomes << endl;
-            cout << mol.tab[i].nbElectrons << endl;
+            //cout << mol.nbAtomes << endl;
+            //cout << mol.tab[i].nbElectrons << endl;
         }
     }
 }
-
-
 
 void drawMolecule(Molecule& mol)
 {
@@ -182,24 +229,116 @@ void updateMolecule(Molecule& mol)
     }
 }
 
-void draw_polygon(int cx, int cy, int r, int n)
+void centreMolecule(Molecule& mol)
 {
-    color(255, 0, 0);
-    complexe tab[n];
-    complexe centre = makeComplexe(cx, cy);
-    for(int i=0; i<n; i++)
+    complexe centre;
+    complexe centreAtome;
+    complexe centreElec;
+    int nbElec;
+
+    for(int i=0; i<mol.nbAtomes; i++)
     {
-        tab[i] = centre + makeComplexeExp(r, toRadian(i*(360/n)));
+        centreAtome = centreAtome + 5*mol.tab[i].pos;
+        for(int j=0; j<mol.tab[i].nbElectrons; j++)
+        {
+            centreElec = centreElec + mol.tab[i].tab[j];
+            nbElec ++;
+        }
     }
-    for(int j = 0; j<n-1; j++)
-    {
-        line(tab[j].x, tab[j].y, tab[j+1].x, tab[j+1].y);
-    }
-    line(tab[0].x, tab[0].y, tab[n-1].x, tab[n-1].y);
+    centre = (centreAtome + centreElec) / (5*mol.nbAtomes + nbElec);
+    color(255, 255, 255);
+    circle(centre.x, centre.y, 10);
+    cout << centre.x << " " << centre.y << endl;
 }
 
+/**< COMPLEXES 2017 */ /**< TESTE */
 
+struct Etoile
+{
+    complexe etoile;
+    complexe satellite;
+};
 
+int const MAX = 30;
+
+struct Galaxy
+{
+    complexe centre;
+    Etoile tab[MAX];
+    int nb;
+};
+
+int const CARRE_ETOILE = 50;
+
+void initGalaxy(Galaxy& gala)
+{
+    gala.centre = makeComplexe(DIMW/2, DIMW/2);
+    gala.nb = rand()%MAX + 10;
+    for(int i=0; i<gala.nb; i++)
+    {
+        gala.tab[i].etoile = makeComplexe(rand()%DIMW, rand()%DIMW);
+        gala.tab[i].satellite = makeComplexe(gala.tab[i].etoile.x + rand()%CARRE_ETOILE/2, gala.tab[i].etoile.y + rand()%CARRE_ETOILE/2);
+
+    }
+}
+
+void drawGalaxy(Galaxy& gala)
+{
+    for(int i=0; i<gala.nb; i++)
+    {
+        color(255, 0, 0);
+        circleFill(gala.tab[i].etoile.x, gala.tab[i].etoile.y, 10);
+        color(0, 0, 255);
+        circle(gala.tab[i].satellite.x, gala.tab[i].satellite.y, 5);
+    }
+}
+
+void updateGalaxy(Galaxy& gala)
+{
+    complexe c = makeComplexe(DIMW/2, DIMW/2);
+    complexe tr;
+
+    for(int i=0; i<gala.nb; i++)
+    {
+        tr = gala.tab[i].satellite - gala.tab[i].etoile;
+        gala.tab[i].etoile = Rotate(gala.tab[i].etoile, c, 0.01);
+        gala.tab[i].satellite = gala.tab[i].etoile + tr;
+        gala.tab[i].satellite = Rotate(gala.tab[i].satellite, gala.tab[i].etoile, 0.1);
+    }
+}
+
+/**< INTERPOLATION 2017 */
+
+struct Personne
+{
+    float poids;
+    float C;
+    int tabVerre[MAX_H];
+    float tabAlcool[MAX_H-1];
+};
+
+void initPersonne(Personne& p, float poids)
+{
+    p.poids = poids;
+    p.C = 10 / (0.68 * p.poids);
+    for(int i=0; i<MAX_H; i++)
+    {
+        p.tabVerre[i] = rand()%4;
+    }
+}
+
+void calculAlcool(Personne& p)
+{
+    for(int i=0; i<MAX_H; i++)
+    {
+        p.tabAlcool[i] = p.C * p.tabVerre[i];
+    }
+}
+
+float interpolationAlcool(Personne& p, int H, int M)
+{
+    return (1.-(M/60.))*p.tabAlcool[H] + (M/60.)*p.tabAlcool[H+1];
+}
 
 int main(int , char**)
 {
@@ -208,11 +347,24 @@ int main(int , char**)
 	winInit("joueur",DIMW,DIMW);
 	backgroundColor(300,300,300);
 
-	//Galaxy gala;
-	//initGalaxy(gala);
+	Galaxy gala;
+	initGalaxy(gala);
 
-	//Molecule mol;
-	//initMolecule(mol);
+	Molecule mol;
+	initMolecule(mol);
+
+	Personne p;
+	initPersonne(p, 78.);
+	calculAlcool(p);
+	for(int i=0; i<MAX_H; i++)
+    {
+        cout << p.tabAlcool[i] << endl;
+    }
+
+	cout << "interpolation : " << interpolationAlcool(p, 6, 45) << endl;
+
+	Vaisseau vais;
+	initVaisseau(vais); /**< PAS DANS LE CT */
 
 	while(!stop)
     {
@@ -223,8 +375,11 @@ int main(int , char**)
 
 	    //drawMolecule(mol);
 	    //updateMolecule(mol);
+	    //centreMolecule(mol);
 
 	    draw_polygon(DIMW/2, DIMW/2, 50, 7);
+	    dessine_vaisseau(vais);
+	    update_vaisseau(vais);
 
         stop = winDisplay();
 	}
