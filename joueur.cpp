@@ -167,9 +167,11 @@ void calculeConcentration(Lieu& li)
     /**< les tableaux voitures, pluie, vent sont remplis. On suppose également que la
 concentration initiale est de 0.  */
 
-    for(int i=0; i<MAX_H; i++)
+    li.tabconc[0] = li.nbUsine * Pusine + li.tabVoiture[0] * Pvoiture - Dvent * li.tabVent[0] - Dpluie * li.tabPluie[0];
+
+    for(int i=1; i<MAX_H; i++)
     {
-        li.tabconc[i] = li.nbUsine * Pusine + li.tabVoiture[i] * Pvoiture - Dvent * li.tabVent[i] - Dpluie * li.tabPluie[i];
+        li.tabconc[i] = li.tabconc[i-1] + li.nbUsine * Pusine + li.tabVoiture[i] * Pvoiture - Dvent * li.tabVent[i] - Dpluie * li.tabPluie[i];
     }
 }
 
@@ -344,15 +346,17 @@ void initPersonne(Personne& p, float poids)
     p.C = 10 / (0.68 * p.poids);
     for(int i=0; i<MAX_H; i++)
     {
-        p.tabVerre[i] = rand()%4;
+        p.tabVerre[i] = rand()%4; // frand(0, 4);
     }
 }
 
 void calculAlcool(Personne& p)
 {
-    for(int i=0; i<MAX_H; i++)
+    p.tabAlcool[0] = p.C * p.tabVerre[0] - 0.15;
+
+    for(int i=1; i<MAX_H; i++)
     {
-        p.tabAlcool[i] = p.C * p.tabVerre[i];
+        p.tabAlcool[i] = p.tabAlcool[i-1] + p.C * p.tabVerre[i] - 0.15 ;
     }
 }
 
